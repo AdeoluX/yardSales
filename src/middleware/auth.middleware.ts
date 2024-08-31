@@ -18,6 +18,11 @@ export class AuthMiddleware {
       const BearerToken = req.headers?.authorization.split(" ")[1];
       if (req.headers?.authorization) {
         const payload: AuthPayload = Utils.verifyToken(BearerToken);
+        // if(payload?.status && payload?.status !== 'active'){
+        //   throw new NotAuthorizedError(
+        //     "Token is not available. Please login again."
+        //   );
+        // }
         req.body = {
           ...req.body,
           authorizer: payload,

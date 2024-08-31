@@ -1,21 +1,29 @@
+import { TierModel } from "../models/tier.schema";
+import { ICompany, CompanyModel } from "../models/company.schema";
 import { OtpModel } from "../models/otp.schema";
 import { IUser, UserModel } from "../models/user.schema";
 import Utils from "../utils/helper.utils";
 import {
   Iactivate,
   IchangePassword,
+  ICompanyPayload,
   IforgotPassword,
   IsignIn,
   IsignUp,
   ServiceRes,
 } from "./types/auth.types";
+import { AddressModel } from "../models/address.schema";
+import { CompanyAddressModel } from "../models/companyAddress.schema";
+import { sendEmail } from "./email.service";
+import { compare } from "bcrypt";
 
 export class AuthService {
   public async signIn(payload: IsignIn): Promise<ServiceRes> {
     const { email, password } = payload;
-    const user: IUser | null = await UserModel.findOne({ email });
+    const user: IUser | null = await UserModel.findOne({ email }).select('+password');
     if (!user) return { success: false, message: "Invalid credentials" };
-    const isValid = await user.isValidPassword(password);
+    const isValid = await compare(password, user.password);
+    // const isValid = await user.isValidPassword(password);
     if (!isValid) return { success: false, message: "Invalid credentials" };
     const token = Utils.signToken({ email, id: user._id, status: user.status });
     return {
@@ -25,41 +33,79 @@ export class AuthService {
     };
   }
 
-  public async signUp(payload: IsignUp): Promise<ServiceRes> {
+  public async companySignIn(payload: IsignIn): Promise<ServiceRes> {
+    const { email, password } = payload;
+    const company: ICompany | null = await CompanyModel.findOne({ email });
+    if (!company) return { success: false, message: "Invalid credentials" };
+    const isValid = await company.isValidPassword(password);
+    if (!isValid) return { success: false, message: "Invalid credentials" };
+    const token = Utils.signToken({id: company._id, status: company.status });
+    return {
+      success: true,
+      message: "Logged in successfully.",
+      token,
+    };
+  }
+
+  public async signUp(payload: ICompanyPayload): Promise<ServiceRes> {
     const {
+      country,
       email,
+      name,
+      no,
+      phoneNumber,
       password,
       confirmPassword,
-      firstName,
-      lastName,
-      phoneNumber,
-      middleName,
+      state,
+      street,
+      town
     } = payload;
 
-    const userExists = await UserModel.findOne({ email });
-    if (userExists) return { success: false, message: "Invalid credentials." };
+    const companyExists: ICompany | null = await CompanyModel.findOne({ email });
+    if (companyExists) return { success: false, message: "Invalid credentials." };
     if (confirmPassword !== password)
       return { success: false, message: "Passwords don't match." };
-    const createUser = await UserModel.create({
+    let address = await AddressModel.create({
+      country,
+      no,
+      town,
+      state,
+      street
+    })
+    address = await address.save()
+    let createCompany = new CompanyModel({
       email,
       password,
-      confirmPassword,
-      firstName,
-      lastName,
+      name,
       phoneNumber,
-      middleName,
+      tier: '66993361800a5c21c912ebda'
     });
-    if (!createUser) return { success: false, message: "Invalid credentials" };
+    createCompany = await createCompany.save()
+    if (!createCompany) return { success: false, message: "Invalid credentials" };
+    await CompanyAddressModel.create({
+      company: createCompany._id,
+      address: address._id
+    })
     const token = Utils.signToken({
       email,
-      id: createUser._id,
-      status: createUser.status,
+      id: createCompany._id,
+      status: createCompany.status,
     });
     const otp = Utils.generateString({ number: true });
     await OtpModel.create({
-      author_id: createUser._id,
+      author_id: createCompany._id,
       otp,
     });
+    //send email to company
+    sendEmail({
+      to: email,
+      subject: 'New Sign Up',
+      templateName: `welcomeEmail`,
+      replacements: {
+        name,
+        otp
+      }
+    })
     return {
       success: true,
       message: "Logged in successfully.",

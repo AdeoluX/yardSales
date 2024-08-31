@@ -13,6 +13,43 @@ export interface IsignUp {
   middleName?: string;
 }
 
+export interface ICompanyPayload {
+  name: string;
+  street: string;
+  town: string;
+  no: string;
+  phoneNumber: string;
+  password: string;
+  confirmPassword: string;
+  state: string;
+  email: string;
+  country: string;
+}
+
+export interface IprofileUser {
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  email: string;
+  phoneNumber: string;
+  password?: string;
+  role: string;
+  no: string;
+  authorizer?: any;
+  addressId?: string
+}
+
+export interface IAddressPayload {
+  street: string;
+  no: string;
+  town: string;
+  state: string;
+  country: string;
+  hq?: boolean;
+  authorizer?: any;
+  coordinates: Array<number>
+}
+
 export interface Iactivate {
   otp: string;
   authorizer: AuthPayload;
@@ -23,6 +60,7 @@ export interface ServiceRes {
   message?: string;
   token?: string;
   options?: any;
+  data?: any
 }
 
 export interface IforgotPassword {
@@ -41,4 +79,10 @@ export interface AuthPayload {
   email: string;
   status: string;
   iat?: number;
+}
+
+export interface Icheckin {
+  coordinates: Array<number>;
+  qrString: string;
+  authorizer?: any;
 }
