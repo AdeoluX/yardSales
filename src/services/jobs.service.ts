@@ -7,18 +7,18 @@ import cron from 'node-cron'
 
 export class JobService {
    static scheduler () {
-     cron.schedule('01 23 * * *', async () => {
+     cron.schedule('30 05 * * *', async () => {
         // create address qr for all addresses for all companies
         const allCompanies = await CompanyModel.find()
         for(let item of allCompanies){
             let allAddress = await CompanyAddressModel.find({
                 company: item._id
-            }).populate('address')
+            })
             let addressQr = []
             for(let address of allAddress){
                 addressQr.push({
                     qrString: randomUUID(),
-                    address: address._id
+                    address: address.address
                 })
             }
             const addressQR_ = await AddressQRModel.create({

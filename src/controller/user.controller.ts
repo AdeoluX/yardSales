@@ -12,8 +12,8 @@ export class UserController {
         if (!success) return customError(res, 400, message);
         return ok(
           res,
-          { token },
-          success ? "Logged in Successfully" : "Invalid Credentials."
+          { },
+          message
         );
       } catch (error) {
         next(error);

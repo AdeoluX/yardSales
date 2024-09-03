@@ -1,53 +1,69 @@
-import { IUser, UserModel } from "../models/user.schema";
-import Utils from "../utils/helper.utils"
-import {IAddressPayload, Icheckin, ServiceRes} from"./types/auth.types"
-import { CompanyModel, ICompany } from "../models/company.schema";
+import {Icheckin, ServiceRes} from"./types/auth.types";
 import { IUserBranch, UserBranchModel } from "../models/userBranch.schema";
 import { IUserCompany, UserCompanyModel } from "../models/userCompany.schema";
 import { AddressModel, IAddress } from "../models/address.schema";
-import { CompanyAddressModel, ICompanyAddress } from "../models/companyAddress.schema";
 import { AddressQRModel } from "../models/addressQR.schema";
+import { CheckInModel } from "../models/checkIn.schema";
+import moment from 'moment';
 export class UserService {
     public async checkIn({coordinates, qrString, authorizer}: Icheckin): Promise<ServiceRes> {
         // const user: IUser | null = await UserModel.findOne({ email });
         //get addressQr
+        const now = moment()
+        if(now.isSameOrAfter(moment().startOf('day').hour(10))) return {
+            success: false,
+            message: "No checkins after 10am.",
+        };
         const {id} = authorizer;
-        const userCompany = await UserCompanyModel.findOne({
+        const userCompany = (await UserCompanyModel.findOne({
             user: id
-        }).populate('company', 'user')
+        }).populate('company').populate('user'))?.toJSON()
 
-        const userAddress = await UserBranchModel.findOne({
+        const userAddress = (await UserBranchModel.findOne({
             user: id
-        }).populate('address')
+        }).populate('address'))?.toJSON()
 
         if (!userAddress) {
             return {
                 success: false,
-                message: "User is not within the required proximity to the branch address.",
+                message: "Invalid Qr and/or address.",
             };
         }
 
-        const addressQR = await AddressQRModel.find({
-            company: userCompany?.company._id,
-            'addressQr.address': userAddress?.address._id, // Filter by specific address ID
-            'addressQr.qrString': qrString // Filter by specific QR string
-        })
+        const addressQR = (await AddressQRModel.findOne({
+            company: userCompany?.company._id
+        }).sort({ createdAt: -1 }).exec())?.toJSON()
 
-        if (!addressQR) {
+        if(!addressQR){
             return {
                 success: false,
-                message: "User is not within the required proximity to the branch address.",
+                message: "Invalid Qr and/or address.",
             };
         }
 
+        const array = addressQR?.addressQr
+
+        const addressOfInterest = array.find((item) => {
+            return (
+              item.address.toString() === userAddress.address._id.toString() &&
+              item.qrString === qrString
+            );
+        });
+
+        if(!addressOfInterest){
+            return {
+                success: false,
+                message: "Invalid Qr and/or address.",
+            };
+        }
         // code to find if client is with proximity to his branch address
 
-        const address = await AddressModel.findOne({ _id:userAddress.address })
+        const address = await AddressModel.findOne({ _id:addressOfInterest.address })
 
         if (!address) {
             return {
                 success: false,
-                message: "User is not within the required proximity to the branch address.",
+                message: "Invalid Qr and/or address.",
             };
         }
         // Proximity check logic
@@ -62,6 +78,15 @@ export class UserService {
                 message: "User is not within the required proximity to the branch address.",
             };
         }
+
+        await CheckInModel.create({
+            user: id,
+            address: address._id,
+            company: userCompany?.company._id,
+            qrString,
+            coordinates,
+            proximity: isWithinProximity
+        })
 
         return {
         success: true,
@@ -92,5 +117,5 @@ export class UserService {
         const distance = earthRadius * c; // Distance in meters
       
         return distance <= maxDistance;
-      }
+    }
 }
