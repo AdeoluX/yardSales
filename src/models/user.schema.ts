@@ -1,5 +1,6 @@
 import { hash, compare } from "bcrypt";
 import { Document, Schema, Types, model } from "mongoose";
+import { ILeaveBalance, LeaveBalanceSchema } from "./leaveBalance.schema";
 
 // (first_name, last_name, email, phone)
 
@@ -14,7 +15,11 @@ export interface IUser extends Document {
   password: string;
   status: string;
   role: string;
+  rank: Types.ObjectId;
+  department: Types.ObjectId; // Reference to the department this employee belongs to
+  manager?: Types.ObjectId;
   no: string;
+  leaveBalances: ILeaveBalance[];
 }
 
 // user schema
@@ -43,11 +48,15 @@ const UserSchema = new Schema<IUser>(
       type: String,
       enum: ["super-admin", "admin", "employee"]
     },
+    rank: { type: Schema.Types.ObjectId, ref: 'Rank' },
+    department: { type: Schema.Types.ObjectId, ref: 'Department' },
+    manager: { type: Schema.Types.ObjectId, ref: 'User' },
     status: {
       type: String,
       enum: ["active", "inactive"],
       default: "inactive",
     },
+    leaveBalances: { type: [LeaveBalanceSchema], default: [] }
   },
   {
     timestamps: {

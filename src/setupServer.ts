@@ -13,6 +13,7 @@ import compression from "compression";
 import Logger from "bunyan";
 import HTTP_STATUS from "http-status-codes";
 import { JobService } from "./services/jobs.service"
+import fileUpload from "express-fileupload";
 import cron from "node-cron"; // Import node-cron
 
 import applicationRoutes from "./routes";
@@ -48,6 +49,10 @@ export class Server {
     app.use(json({ limit: "50mb" }));
     app.use(urlencoded({ extended: true, limit: "50mb" }));
     app.disable("x-powered-by");
+    app.use(fileUpload({
+      useTempFiles : true,
+      tempFileDir : '/tmp/'
+    }));
     applicationRoutes(app);
   }
 

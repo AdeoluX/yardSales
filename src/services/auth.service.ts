@@ -33,6 +33,22 @@ export class AuthService {
     };
   }
 
+  public async adminSignIn(payload: IsignIn): Promise<ServiceRes> {
+    const { email, password } = payload;
+    const user: IUser | null = await UserModel.findOne({ email }).select('+password');
+    if (!user) return { success: false, message: "Invalid credentials" };
+    if (!['admin', 'super-admin'].includes(user.role)) return { success: false, message: "Invalid credentials" };
+    const isValid = await compare(password, user.password);
+    // const isValid = await user.isValidPassword(password);
+    if (!isValid) return { success: false, message: "Invalid credentials" };
+    const token = Utils.signToken({ email, id: user._id, status: user.status, role: user.role });
+    return {
+      success: true,
+      message: "Logged in successfully.",
+      token,
+    };
+  }
+
   public async companySignIn(payload: IsignIn): Promise<ServiceRes> {
     const { email, password } = payload;
     const company: ICompany | null = await CompanyModel.findOne({ email });

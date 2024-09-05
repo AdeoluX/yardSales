@@ -1,5 +1,6 @@
 import HTTP_STATUS from "http-status-codes"
 import { Response } from 'express'
+import { Stream } from "stream";
 
 export default class ApiResponse {
     static response = ( res: Response, statusCode: number, payload?: Object, message?: string, extra = {} ) => {
@@ -8,7 +9,7 @@ export default class ApiResponse {
         status: statusCode,
         success,
         message,
-        data: payload,
+        ...payload,
         ...extra
         });
     }
@@ -29,4 +30,14 @@ export default class ApiResponse {
         const status: number = statusCode ?? HTTP_STATUS.BAD_REQUEST;
         return ApiResponse.response(res, status, message, stack);
     };
+
+    static downloadFile = async (res: Response, fileData: any, fileName: string, content_type: string) => {
+        let fileContents = Buffer.from(fileData, 'base64');
+        let readStream = new Stream.PassThrough();
+        readStream.end(fileContents);
+        res.attachment(fileName);
+        //res.set('Content-disposition', 'attachment; filename=' + fileName);
+        res.setHeader('Content-Type', content_type);
+        return res.send(fileData)
+    }
 }

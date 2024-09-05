@@ -1,12 +1,15 @@
 import { IUser, UserModel } from "../models/user.schema";
 import Utils from "../utils/helper.utils"
-import {IAddressPayload, IprofileUser, ServiceRes} from"./types/auth.types"
+import {AuthPayload, IAddressPayload, IprofileUser, ServiceRes} from"./types/auth.types"
 import { CompanyModel, ICompany } from "../models/company.schema";
 import { IUserBranch, UserBranchModel } from "../models/userBranch.schema";
 import { IUserCompany, UserCompanyModel } from "../models/userCompany.schema";
 import { AddressModel, IAddress } from "../models/address.schema";
 import { CompanyAddressModel, ICompanyAddress } from "../models/companyAddress.schema";
 import { hash } from "bcrypt";
+import { DepartmentModel } from "../models/department.schema";
+import jsonToCsv from "json2csv";
+import csvToJson from "csvtojson"
 export class CompanyService {
     public async profileUser({email, firstName, lastName, middleName, no, phoneNumber, role, addressId}: IprofileUser, companyId: string): Promise<ServiceRes> {
         const user: IUser | null = await UserModel.findOne({ email });
@@ -87,6 +90,117 @@ export class CompanyService {
         return {
             success: true,
             data: employees
+        }
+    }
+    public async createDepartment ({name, headOfDepartment, user_id}:{name: string, headOfDepartment?: string, user_id: string}): Promise<ServiceRes>{
+        const userCompany = await UserCompanyModel.findOne({
+            user: user_id
+        })
+
+        const createDepartment = await DepartmentModel.create({
+            name,
+            headOfDepartment,
+            company: userCompany?.company
+        })
+
+        return {
+            success: true,
+            data: createDepartment.toJSON(),
+            message: "Department created Successfully",
+        }
+    }
+    public async downloadTemplate ({authorizer}:{authorizer: AuthPayload}): Promise<ServiceRes>{
+        const { id } = authorizer;
+        const userCompany = await UserCompanyModel.findOne({
+            user: id
+        })
+        const departmentTemp = [
+            {
+                name: "HR",
+                company: userCompany?.company,
+                headOfDepartment: "",
+                parentDepartment: ""
+            }
+        ]
+        const json2csvParser = new jsonToCsv.Parser();
+        const csv = json2csvParser.parse(departmentTemp);
+        return {
+            success: true,
+            data: csv,
+        }
+    }
+    public async bulkCreateDepartment ({ authorizer, file }: {authorizer: AuthPayload; file: any}): Promise<ServiceRes>{
+        const { id } = authorizer;
+
+        const userCompany = await UserCompanyModel.findOne({
+            user: id
+        })
+
+        let jsonObject = await csvToJson().fromFile(file)
+
+        jsonObject = jsonObject.map((item) => ({
+            ...item,
+            company: userCompany?.company
+        }))
+
+        await DepartmentModel.insertMany(jsonObject)
+
+        return {
+            success: true,
+        }
+    }
+    public async getAllDepartments ({authorizer}: {authorizer: AuthPayload}) : Promise<ServiceRes>{
+        const { id } = authorizer;
+
+        const userCompany = await UserCompanyModel.findOne({
+            user: id
+        })
+
+        const allDepartments = await DepartmentModel.find({
+            company: userCompany?.company
+        })
+
+        return {
+            success: true,
+            data: allDepartments
+        }
+    }
+    public async getOneDepartments ({authorizer, department_id}: {authorizer: AuthPayload; department_id: string;}) : Promise<ServiceRes>{
+        const { id } = authorizer;
+
+        const userCompany = await UserCompanyModel.findOne({
+            user: id
+        })
+
+        const department = await DepartmentModel.findOne({
+            company: userCompany?.company,
+            _id: department_id
+        })
+
+        return {
+            success: true,
+            data: department
+        }
+    }
+    
+    public async updateOneDepartment ({authorizer, department_id, changes}: {authorizer: AuthPayload; department_id: string; changes: any}): Promise<ServiceRes>{
+        const { id } = authorizer;
+
+        const userCompany = await UserCompanyModel.findOne({
+            user: id
+        })
+        const department = await DepartmentModel.updateOne({
+            company: userCompany?.company,
+            _id: department_id
+        }, {
+            $set: changes
+        },{
+            new: true
+        })
+
+        return {
+            success: true,
+            data: department
         }
     }
 }

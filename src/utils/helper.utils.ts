@@ -1,6 +1,6 @@
 import jsonWebToken from "jsonwebtoken";
 import { config } from "../config";
-import { AuthPayload } from "../services/types/auth.types";
+import { AuthPayload, UserAuthPayload } from "../services/types/auth.types";
 
 export default class Utils {
   static signToken = (object: Object): string => {
@@ -8,7 +8,7 @@ export default class Utils {
     return token;
   };
 
-  static verifyToken = (token: string): AuthPayload => {
+  static verifyToken = (token: string): AuthPayload | UserAuthPayload => {
     const result: AuthPayload = jsonWebToken.verify(
       token,
       config.TOKEN_SECRET

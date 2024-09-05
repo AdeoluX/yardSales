@@ -11,6 +11,7 @@ class AuthRoutes {
 
   public routes(): Router {
     this.router.post("/sign-in", AuthController.prototype.signIn);
+    this.router.post("/admin/sign-in", AuthController.prototype.adminSignIn);
     this.router.post("/company/sign-in", AuthController.prototype.companySignIn);
     this.router.post("/sign-up", AuthController.prototype.signUp);
     this.router.post(

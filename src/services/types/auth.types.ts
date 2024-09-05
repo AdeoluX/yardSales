@@ -79,6 +79,15 @@ export interface AuthPayload {
   email: string;
   status: string;
   iat?: number;
+  role?: string
+}
+
+export interface UserAuthPayload {
+  id: string;
+  email: string;
+  status: string;
+  iat?: number;
+  role: string
 }
 
 export interface Icheckin {
