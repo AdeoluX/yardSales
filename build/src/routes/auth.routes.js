@@ -13,6 +13,8 @@ class AuthRoutes {
     }
     routes() {
         this.router.post("/sign-in", controller_1.AuthController.prototype.signIn);
+        this.router.post("/admin/sign-in", controller_1.AuthController.prototype.adminSignIn);
+        this.router.post("/company/sign-in", controller_1.AuthController.prototype.companySignIn);
         this.router.post("/sign-up", controller_1.AuthController.prototype.signUp);
         this.router.post("/forgot-password", controller_1.AuthController.prototype.forgotPassword);
         this.router.post("/activate-profile", auth_middleware_1.authMiddleware.verifyUser, controller_1.AuthController.prototype.activateProfile);

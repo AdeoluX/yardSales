@@ -13,17 +13,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
+const company_schema_1 = require("../models/company.schema");
 const otp_schema_1 = require("../models/otp.schema");
 const user_schema_1 = require("../models/user.schema");
 const helper_utils_1 = __importDefault(require("../utils/helper.utils"));
+const address_schema_1 = require("../models/address.schema");
+const companyAddress_schema_1 = require("../models/companyAddress.schema");
+const email_service_1 = require("./email.service");
+const bcrypt_1 = require("bcrypt");
 class AuthService {
     signIn(payload) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, password } = payload;
-            const user = yield user_schema_1.UserModel.findOne({ email });
+            const user = yield user_schema_1.UserModel.findOne({ email }).select('+password');
             if (!user)
                 return { success: false, message: "Invalid credentials" };
-            const isValid = yield user.isValidPassword(password);
+            const isValid = yield (0, bcrypt_1.compare)(password, user.password);
+            // const isValid = await user.isValidPassword(password);
             if (!isValid)
                 return { success: false, message: "Invalid credentials" };
             const token = helper_utils_1.default.signToken({ email, id: user._id, status: user.status });
@@ -34,34 +40,92 @@ class AuthService {
             };
         });
     }
+    adminSignIn(payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email, password } = payload;
+            const user = yield user_schema_1.UserModel.findOne({ email }).select('+password');
+            if (!user)
+                return { success: false, message: "Invalid credentials" };
+            if (!['admin', 'super-admin'].includes(user.role))
+                return { success: false, message: "Invalid credentials" };
+            const isValid = yield (0, bcrypt_1.compare)(password, user.password);
+            // const isValid = await user.isValidPassword(password);
+            if (!isValid)
+                return { success: false, message: "Invalid credentials" };
+            const token = helper_utils_1.default.signToken({ email, id: user._id, status: user.status, role: user.role });
+            return {
+                success: true,
+                message: "Logged in successfully.",
+                token,
+            };
+        });
+    }
+    companySignIn(payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email, password } = payload;
+            const company = yield company_schema_1.CompanyModel.findOne({ email });
+            if (!company)
+                return { success: false, message: "Invalid credentials" };
+            const isValid = yield company.isValidPassword(password);
+            if (!isValid)
+                return { success: false, message: "Invalid credentials" };
+            const token = helper_utils_1.default.signToken({ id: company._id, status: company.status });
+            return {
+                success: true,
+                message: "Logged in successfully.",
+                token,
+            };
+        });
+    }
     signUp(payload) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { email, password, confirmPassword, firstName, lastName, phoneNumber, middleName, } = payload;
-            const userExists = yield user_schema_1.UserModel.findOne({ email });
-            if (userExists)
+            const { country, email, name, no, phoneNumber, password, confirmPassword, state, street, town } = payload;
+            const companyExists = yield company_schema_1.CompanyModel.findOne({ email });
+            if (companyExists)
                 return { success: false, message: "Invalid credentials." };
             if (confirmPassword !== password)
                 return { success: false, message: "Passwords don't match." };
-            const createUser = yield user_schema_1.UserModel.create({
+            let address = yield address_schema_1.AddressModel.create({
+                country,
+                no,
+                town,
+                state,
+                street
+            });
+            address = yield address.save();
+            let createCompany = new company_schema_1.CompanyModel({
                 email,
                 password,
-                confirmPassword,
-                firstName,
-                lastName,
+                name,
                 phoneNumber,
-                middleName,
+                tier: '66993361800a5c21c912ebda'
             });
-            if (!createUser)
+            createCompany = yield createCompany.save();
+            if (!createCompany)
                 return { success: false, message: "Invalid credentials" };
+            yield companyAddress_schema_1.CompanyAddressModel.create({
+                company: createCompany._id,
+                address: address._id
+            });
             const token = helper_utils_1.default.signToken({
                 email,
-                id: createUser._id,
-                status: createUser.status,
+                id: createCompany._id,
+                status: createCompany.status,
             });
             const otp = helper_utils_1.default.generateString({ number: true });
             yield otp_schema_1.OtpModel.create({
-                author_id: createUser._id,
+                author_id: createCompany._id,
                 otp,
+            });
+            //send email to company
+            (0, email_service_1.sendEmail)({
+                to: email,
+                subject: 'New Sign Up',
+                templateName: `welcomeEmail`,
+                replacements: {
+                    name,
+                    otp
+                }
             });
             return {
                 success: true,

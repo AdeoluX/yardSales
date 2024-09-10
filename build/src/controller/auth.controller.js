@@ -42,6 +42,34 @@ class AuthController {
             }
         });
     }
+    adminSignIn(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const payload = req.body;
+                const { success, message, token } = yield auth_service_1.AuthService.prototype.adminSignIn(payload);
+                if (!success)
+                    return customError(res, 400, message);
+                return ok(res, { token }, success ? "Logged in Successfully" : "Invalid Credentials.");
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+    }
+    companySignIn(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const payload = req.body;
+                const { success, message, token } = yield auth_service_1.AuthService.prototype.companySignIn(payload);
+                if (!success)
+                    return customError(res, 400, message);
+                return ok(res, { token }, success ? "Logged in Successfully" : "Invalid Credentials.");
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+    }
     signUp(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

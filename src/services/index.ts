@@ -1,5 +1,5 @@
-import { Company } from "./company.service";
+// import { Company } from "./company.service";
 
-export {
-    Company as CompanyService
-}
+// export {
+//     Company as CompanyService
+// }

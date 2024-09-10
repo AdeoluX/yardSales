@@ -7,7 +7,6 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = require("../config");
 class Utils {
 }
-exports.default = Utils;
 Utils.signToken = (object) => {
     const token = jsonwebtoken_1.default.sign(object, config_1.config.TOKEN_SECRET);
     return token;
@@ -35,4 +34,5 @@ Utils.generateString = ({ alpha = false, number = false }) => {
     }
     return result;
 };
+exports.default = Utils;
 //# sourceMappingURL=helper.utils.js.map

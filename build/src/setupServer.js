@@ -19,6 +19,8 @@ const helmet_1 = __importDefault(require("helmet"));
 const hpp_1 = __importDefault(require("hpp"));
 const compression_1 = __importDefault(require("compression"));
 const http_status_codes_1 = __importDefault(require("http-status-codes"));
+const jobs_service_1 = require("./services/jobs.service");
+const express_fileupload_1 = __importDefault(require("express-fileupload"));
 const routes_1 = __importDefault(require("./routes"));
 const error_handler_1 = require("./utils/error-handler");
 class Server {
@@ -32,6 +34,7 @@ class Server {
         this.apiMonitoring(this.app);
         this.startServer(this.app);
         this.globalErrorHandler(this.app);
+        this.scheduleCronJobs();
     }
     standardMiddleware(app) {
         app.use((0, compression_1.default)());
@@ -44,6 +47,10 @@ class Server {
         app.use((0, express_1.json)({ limit: "50mb" }));
         app.use((0, express_1.urlencoded)({ extended: true, limit: "50mb" }));
         app.disable("x-powered-by");
+        app.use((0, express_fileupload_1.default)({
+            useTempFiles: true,
+            tempFileDir: '/tmp/'
+        }));
         (0, routes_1.default)(app);
     }
     apiMonitoring(app) { }
@@ -77,6 +84,11 @@ class Server {
     }
     startServer(app) {
         app.listen(process.env.PORT, () => __awaiter(this, void 0, void 0, function* () { return console.log(`Listening on port ${process.env.PORT}`); }));
+    }
+    scheduleCronJobs() {
+        // Schedule a cron job to run every day at 9:50 PM
+        jobs_service_1.JobService.scheduler();
+        // Additional cron jobs can be added here
     }
 }
 exports.Server = Server;

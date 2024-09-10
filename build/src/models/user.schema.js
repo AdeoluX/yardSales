@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserModel = void 0;
 const bcrypt_1 = require("bcrypt");
 const mongoose_1 = require("mongoose");
+const leaveBalance_schema_1 = require("./leaveBalance.schema");
 // user schema
 const UserSchema = new mongoose_1.Schema({
     firstName: {
@@ -24,16 +25,28 @@ const UserSchema = new mongoose_1.Schema({
     },
     middleName: String,
     email: String,
-    password: String,
+    password: {
+        type: String,
+        select: false
+    },
     phoneNumber: {
         type: String,
         required: true,
     },
+    no: String,
+    role: {
+        type: String,
+        enum: ["super-admin", "admin", "employee"]
+    },
+    rank: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Rank' },
+    department: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Department' },
+    manager: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
     status: {
         type: String,
         enum: ["active", "inactive"],
         default: "inactive",
     },
+    leaveBalances: { type: [leaveBalance_schema_1.LeaveBalanceSchema], default: [] }
 }, {
     timestamps: {
         createdAt: "createdAt",
