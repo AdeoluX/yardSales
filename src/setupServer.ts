@@ -12,7 +12,6 @@ import hpp from "hpp";
 import compression from "compression";
 import Logger from "bunyan";
 import HTTP_STATUS from "http-status-codes";
-import { JobService } from "./services/jobs.service"
 import fileUpload from "express-fileupload";
 import cron from "node-cron"; // Import node-cron
 
@@ -34,7 +33,6 @@ export class Server {
     this.apiMonitoring(this.app);
     this.startServer(this.app);
     this.globalErrorHandler(this.app);
-    this.scheduleCronJobs();
   }
 
   private standardMiddleware(app: Application): void {
@@ -104,9 +102,4 @@ export class Server {
     );
   }
 
-  private scheduleCronJobs(): void {
-    // Schedule a cron job to run every day at 9:50 PM
-    JobService.scheduler()
-    // Additional cron jobs can be added here
-  }
 }

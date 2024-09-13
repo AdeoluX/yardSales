@@ -10,7 +10,7 @@ class UserRoutes {
   }
 
   public routes(): Router {
-    this.router.post("/check-in", authMiddleware.verifyUser, UserController.prototype.checkIn);
+    this.router.post("/user", authMiddleware.verifyUser, UserController.prototype.checkIn);
     return this.router;
   }
 }

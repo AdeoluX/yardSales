@@ -7,10 +7,6 @@ export interface IsignUp {
   email: string;
   password: string;
   confirmPassword: string;
-  phoneNumber: string;
-  firstName: string;
-  lastName: string;
-  middleName?: string;
 }
 
 export interface ICompanyPayload {

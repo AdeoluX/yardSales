@@ -28,7 +28,7 @@ export default class ApiResponse {
 
     static customError = (res: Response, statusCode?: number, message = 'Error occured', stack?: any) => {
         const status: number = statusCode ?? HTTP_STATUS.BAD_REQUEST;
-        return ApiResponse.response(res, status, message, stack);
+        return ApiResponse.response(res, status, {}, message, stack);
     };
 
     static downloadFile = async (res: Response, fileData: any, fileName: string, content_type: string) => {
