@@ -28,7 +28,7 @@ const UserSchema = new Schema<IUser>(
     email: String,
     password: {
       type: String,
-      select: false,
+      // select: false,
     },
     phoneNumber: {
       type: String,

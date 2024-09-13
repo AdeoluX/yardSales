@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const user_schema_1 = require("../models/user.schema");
 const helper_utils_1 = __importDefault(require("../utils/helper.utils"));
+const bcrypt_1 = require("bcrypt");
 class AuthService {
     signIn(payload) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -25,7 +26,8 @@ class AuthService {
                     data: {},
                     message: 'Invalid Credentials'
                 };
-            const check = user.isValidPassword(payload.password);
+            const check = yield (0, bcrypt_1.compare)(payload.password, user.password);
+            // const check = user.isValidPassword(payload.password)
             if (!check)
                 return {
                     success: false,
@@ -38,9 +40,8 @@ class AuthService {
             });
             return {
                 success: true,
-                data: {
-                    token
-                },
+                data: {},
+                token,
                 message: "Successful login"
             };
         });

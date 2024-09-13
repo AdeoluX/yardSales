@@ -19,7 +19,8 @@ export class AuthService {
       data: {},
       message: 'Invalid Credentials'
     }
-    const check = user.isValidPassword(payload.password)
+    const check = await compare(payload.password, user.password)
+    // const check = user.isValidPassword(payload.password)
     if(!check) return {
       success: false,
       data: {},
@@ -31,9 +32,8 @@ export class AuthService {
     })
     return {
       success: true,
-      data: {
-        token
-      },
+      data: {},
+      token,
       message: "Successful login"
     }
   }
