@@ -3,6 +3,10 @@ export interface IsignIn {
   password: string;
 }
 
+export interface IsendOtp {
+  email: string;
+}
+
 export interface IsignUp {
   email: string;
   password: string;

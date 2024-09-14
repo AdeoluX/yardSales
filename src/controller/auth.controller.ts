@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import ApiResponse from "../utils/api-response";
-import {  ICompanyPayload, IsignIn, IsignUp } from "../services/types/auth.types";
+import {  ICompanyPayload, IsendOtp, IsignIn, IsignUp } from "../services/types/auth.types";
 import { AuthService } from "../services/auth.service";
 const { created, customError, ok, response } = ApiResponse;
 
@@ -35,6 +35,22 @@ export class AuthController {
       );
     } catch (error) {
       next(error);
+    }
+  }
+
+  public async sendOtp(req: Request, res: Response, next: NextFunction) {
+    try{
+      const payload : IsendOtp = req.body;
+      const { success, message, token } = await AuthService.prototype.sendOtp(
+        payload
+      );
+      return ok(
+        res,
+        { },
+        message
+      );
+    }catch(error){
+      next(error)
     }
   }
 

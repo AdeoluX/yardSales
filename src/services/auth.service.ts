@@ -1,3 +1,4 @@
+import { OtpModel } from "../models/otp.schema";
 import { IUser, UserModel } from "../models/user.schema";
 import Utils from "../utils/helper.utils";
 import {
@@ -5,11 +6,13 @@ import {
   IchangePassword,
   ICompanyPayload,
   IforgotPassword,
+  IsendOtp,
   IsignIn,
   IsignUp,
   ServiceRes,
 } from "./types/auth.types";
 import { compare } from "bcrypt";
+import { sendEmail } from "./email.service";
 
 export class AuthService {
   public async signIn(payload: IsignIn): Promise<ServiceRes> {
@@ -66,6 +69,36 @@ export class AuthService {
       success: true,
       token,
       message: "Signed up successfully."
+    }
+  }
+
+  public async sendOtp(payload: IsendOtp): Promise<ServiceRes>{
+    //Find User
+    const user = await UserModel.findOne({
+      email: payload.email
+    })
+    if(!user) return {
+      success: true,
+      message: "Otp has been sent successfully"
+    }
+    const otp = Utils.generateString({number: true})
+    //send otp to email
+    sendEmail({
+      to: payload.email,
+      subject: 'Otp Verification',
+      templateName: "otpEmail",
+      replacements: {
+        "OTP_CODE": otp
+      }
+    })
+    //create otp
+    await OtpModel.create({
+      user_id: user._id,
+      otp
+    })
+    return {
+      success: true,
+      message: "Otp has been sent successfully"
     }
   }
 

@@ -13,9 +13,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
+const otp_schema_1 = require("../models/otp.schema");
 const user_schema_1 = require("../models/user.schema");
 const helper_utils_1 = __importDefault(require("../utils/helper.utils"));
 const bcrypt_1 = require("bcrypt");
+const email_service_1 = require("./email.service");
 class AuthService {
     signIn(payload) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -74,6 +76,38 @@ class AuthService {
                 success: true,
                 token,
                 message: "Signed up successfully."
+            };
+        });
+    }
+    sendOtp(payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            //Find User
+            const user = yield user_schema_1.UserModel.findOne({
+                email: payload.email
+            });
+            if (!user)
+                return {
+                    success: true,
+                    message: "Otp has been sent successfully"
+                };
+            const otp = helper_utils_1.default.generateString({ number: true });
+            //send otp to email
+            (0, email_service_1.sendEmail)({
+                to: payload.email,
+                subject: 'Otp Verification',
+                templateName: "otpEmail",
+                replacements: {
+                    "OTP_CODE": otp
+                }
+            });
+            //create otp
+            yield otp_schema_1.OtpModel.create({
+                user_id: user._id,
+                otp
+            });
+            return {
+                success: true,
+                message: "Otp has been sent successfully"
             };
         });
     }

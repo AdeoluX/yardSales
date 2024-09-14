@@ -25,7 +25,7 @@ Utils.generateString = ({ alpha = false, number = false }) => {
         characters = characters + numberChars;
     }
     if (number && !alpha) {
-        length = 6;
+        length = 4;
     }
     let result = "";
     for (let i = 0; i < length; i++) {
