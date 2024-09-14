@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "tsc && copyfiles -u 1 src/**/*.{html,hbs,css,json} build/src/",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./build/src/index.js",
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node ./src/index.ts'"
@@ -33,6 +34,7 @@
     "bcrypt": "^5.1.1",
     "bunyan": "^1.8.15",
     "compression": "^1.7.4",
+    "copyfiles": "^2.4.1",
     "cors": "^2.8.5",
     "csvtojson": "^2.0.10",
     "dotenv": "^16.4.5",
