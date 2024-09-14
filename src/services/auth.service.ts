@@ -9,6 +9,7 @@ import {
   IsendOtp,
   IsignIn,
   IsignUp,
+  IverifyOtp,
   ServiceRes,
 } from "./types/auth.types";
 import { compare } from "bcrypt";
@@ -99,6 +100,30 @@ export class AuthService {
     return {
       success: true,
       message: "Otp has been sent successfully"
+    }
+  }
+
+  public async verifyOtp(payload: IverifyOtp): Promise<ServiceRes>{
+    const { email, otp } = payload;
+    const user = await UserModel.findOne({email})
+    if(!user) return {
+      success: false,
+      message: 'Invalid Otp!'
+    }
+    const findOtp = await OtpModel.findOne({
+      user_id: user._id,
+      otp, used: false
+    })
+    if(!findOtp){ 
+      return {
+        success: false,
+        message: 'Invalid Otp!'
+      }
+    }
+    await OtpModel.updateOne({_id: findOtp._id}, {used: true})
+    return {
+      success: true,
+      message: 'Successfully Verified!'
     }
   }
 

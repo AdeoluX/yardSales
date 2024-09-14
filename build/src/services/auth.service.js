@@ -111,6 +111,32 @@ class AuthService {
             };
         });
     }
+    verifyOtp(payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email, otp } = payload;
+            const user = yield user_schema_1.UserModel.findOne({ email });
+            if (!user)
+                return {
+                    success: false,
+                    message: 'Invalid Otp!'
+                };
+            const findOtp = yield otp_schema_1.OtpModel.findOne({
+                user_id: user._id,
+                otp, used: false
+            });
+            if (!findOtp) {
+                return {
+                    success: false,
+                    message: 'Invalid Otp!'
+                };
+            }
+            yield otp_schema_1.OtpModel.updateOne({ _id: findOtp._id }, { used: true });
+            return {
+                success: true,
+                message: 'Successfully Verified!'
+            };
+        });
+    }
 }
 exports.AuthService = AuthService;
 //# sourceMappingURL=auth.service.js.map

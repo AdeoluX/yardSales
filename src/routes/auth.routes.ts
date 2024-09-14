@@ -13,6 +13,7 @@ class AuthRoutes {
     this.router.post("/sign-in", AuthController.prototype.signIn);
     this.router.post("/sign-up", AuthController.prototype.signUp);
     this.router.post("/send-otp", AuthController.prototype.sendOtp);
+    this.router.post("/verify-otp", AuthController.prototype.verifyOtp);
     return this.router;
   }
 }

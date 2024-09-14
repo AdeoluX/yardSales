@@ -21,6 +21,7 @@ const OtpSchema = new Schema<IOtp>(
     },
     used: {
       type: Boolean,
+      default: false
     },
   },
   {

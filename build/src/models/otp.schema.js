@@ -13,6 +13,7 @@ const OtpSchema = new mongoose_1.Schema({
     },
     used: {
         type: Boolean,
+        default: false
     },
 }, {
     timestamps: {
