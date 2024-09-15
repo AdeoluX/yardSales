@@ -63,7 +63,21 @@ class AuthController {
                 const payload = req.body;
                 const { success, message, token } = yield auth_service_1.AuthService.prototype.verifyOtp(payload);
                 if (!success)
-                    customError(res, 400, message);
+                    return customError(res, 400, message);
+                return ok(res, {}, message);
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+    }
+    resetPassword(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const payload = req.body;
+                const { success, message, token } = yield auth_service_1.AuthService.prototype.resetPassword(payload);
+                if (!success)
+                    return customError(res, 400, message);
                 return ok(res, {}, message);
             }
             catch (error) {

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import ApiResponse from "../utils/api-response";
-import {  ICompanyPayload, IsendOtp, IsignIn, IsignUp, IverifyOtp } from "../services/types/auth.types";
+import {  ICompanyPayload, IresetPassword, IsendOtp, IsignIn, IsignUp, IverifyOtp } from "../services/types/auth.types";
 import { AuthService } from "../services/auth.service";
 const { created, customError, ok, response } = ApiResponse;
 
@@ -60,7 +60,24 @@ export class AuthController {
       const { success, message, token } = await AuthService.prototype.verifyOtp(
         payload
       );
-      if(!success) customError(res, 400, message);
+      if(!success) return customError(res, 400, message);
+      return ok(
+        res,
+        { },
+        message
+      );
+    }catch(error){
+      next(error)
+    }
+  }
+
+  public async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try{
+      const payload : IresetPassword = req.body;
+      const { success, message, token } = await AuthService.prototype.resetPassword(
+        payload
+      );
+      if(!success) return customError(res, 400, message);
       return ok(
         res,
         { },

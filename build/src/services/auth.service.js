@@ -137,6 +137,43 @@ class AuthService {
             };
         });
     }
+    resetPassword(payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { confirmPassword, email, otp, password } = payload;
+            if (!confirmPassword || !password)
+                return {
+                    success: false,
+                    message: "Password & confirmPassword field cannot be empty"
+                };
+            const findUser = yield user_schema_1.UserModel.findOne({ email });
+            if (!findUser)
+                return {
+                    success: false,
+                    message: "Invalid credentials!"
+                };
+            if (confirmPassword !== password)
+                return {
+                    success: false,
+                    message: "Please passwords must match"
+                };
+            const findOtp = yield otp_schema_1.OtpModel.findOne({
+                user_id: findUser._id,
+                otp, used: true
+            });
+            if (!findOtp)
+                return {
+                    success: false,
+                    message: "Invalid credentials!"
+                };
+            const hashPassword = yield (0, bcrypt_1.hash)(password, 10);
+            yield user_schema_1.UserModel.updateOne({ _id: findUser._id }, { password: hashPassword });
+            yield otp_schema_1.OtpModel.deleteOne({ _id: findOtp._id });
+            return {
+                success: true,
+                message: "Password updated successfully."
+            };
+        });
+    }
 }
 exports.AuthService = AuthService;
 //# sourceMappingURL=auth.service.js.map

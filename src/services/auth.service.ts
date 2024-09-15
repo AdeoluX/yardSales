@@ -6,13 +6,14 @@ import {
   IchangePassword,
   ICompanyPayload,
   IforgotPassword,
+  IresetPassword,
   IsendOtp,
   IsignIn,
   IsignUp,
   IverifyOtp,
   ServiceRes,
 } from "./types/auth.types";
-import { compare } from "bcrypt";
+import { compare, hash } from "bcrypt";
 import { sendEmail } from "./email.service";
 
 export class AuthService {
@@ -127,5 +128,35 @@ export class AuthService {
     }
   }
 
-  // public async forgotPassword(payload: IforgotPassword): Promise<ServiceRes> {}
+  public async resetPassword(payload: IresetPassword): Promise<ServiceRes> {
+    const { confirmPassword, email, otp, password } = payload;
+    if(!confirmPassword || !password) return {
+      success: false,
+      message: "Password & confirmPassword field cannot be empty"
+    }
+    const findUser = await UserModel.findOne({email})
+    if(!findUser) return {
+      success: false,
+      message: "Invalid credentials!"
+    }
+    if(confirmPassword !== password) return {
+      success: false,
+      message: "Please passwords must match"
+    }
+    const findOtp = await OtpModel.findOne({
+      user_id: findUser._id,
+      otp, used: true
+    })
+    if(!findOtp) return {
+      success: false,
+      message: "Invalid credentials!"
+    }
+    const hashPassword = await hash(password, 10)
+    await UserModel.updateOne({_id: findUser._id}, {password: hashPassword})
+    await OtpModel.deleteOne({_id: findOtp._id})
+    return {
+      success: true,
+      message: "Password updated successfully."
+    }
+  }
 }

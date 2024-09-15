@@ -12,6 +12,13 @@ export interface IverifyOtp {
   otp: string;
 }
 
+export interface IresetPassword {
+  email: string;
+  otp: string;
+  password: string;
+  confirmPassword: string;
+}
+
 export interface IsignUp {
   email: string;
   password: string;

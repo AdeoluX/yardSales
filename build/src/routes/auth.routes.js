@@ -15,6 +15,7 @@ class AuthRoutes {
         this.router.post("/sign-up", controller_1.AuthController.prototype.signUp);
         this.router.post("/send-otp", controller_1.AuthController.prototype.sendOtp);
         this.router.post("/verify-otp", controller_1.AuthController.prototype.verifyOtp);
+        this.router.post("/reset-password", controller_1.AuthController.prototype.resetPassword);
         return this.router;
     }
 }
