@@ -37,4 +37,12 @@ export default class Utils {
     }
     return result;
   };
+
+  static paginateOptions = (query: { page: number | string; perPage: number | string }) => {
+    const page = Number(query.page) || 1;
+    const perPage = Number(query.perPage) || 10;
+    const skip = (page - 1) * perPage;
+    
+    return { page, perPage, skip };
+}
 }

@@ -72,7 +72,10 @@ export interface ServiceRes {
   message?: string;
   token?: string;
   options?: any;
-  data?: any
+  data?: any;
+  currentPage?: number;
+  totalPages?: number;
+  totalCount?: number;
 }
 
 export interface IforgotPassword {
@@ -106,4 +109,28 @@ export interface Icheckin {
   coordinates: Array<number>;
   qrString: string;
   authorizer?: any;
+}
+
+export interface Ipagination {
+  page: number;
+  perPage: number;
+  skip: number;
+}
+
+export interface IdateFilter {
+  startDate: Date;
+  endDate: Date;
+}
+
+export interface IQuerySearch {
+  search: string;
+}
+
+export interface IQuery extends Ipagination, IdateFilter, IQuerySearch {}
+
+export interface IReviewProducts {
+  comment: string;
+  rating: number;
+  authorizer?: any;
+  product?: string;
 }

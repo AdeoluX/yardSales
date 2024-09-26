@@ -29,7 +29,7 @@ export class AuthMiddleware {
             "You do not have permission to perform this action."
           );
         }
-        console.log(this?.allowedRoles)
+        // console.log(this?.allowedRoles)
         if (this?.allowedRoles?.length > 0 && !this?.allowedRoles?.includes(payload?.role)) {
           throw new NotAuthorizedError(
             "You do not have permission to perform this action."
