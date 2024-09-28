@@ -50,7 +50,7 @@ export class UserService {
               name: "Nike Air Max 270",
               price: 45000,
               currency: "NGN",
-              image: "https://example.com/images/nike-air-max-270.jpg",
+              image: "https://res.cloudinary.com/jakin/image/upload/v1727556056/products/NIKE_rmprlu.jpg",
               category: 'fashion'
             },
             {
@@ -58,7 +58,7 @@ export class UserService {
               "name": "Apple iPhone 13",
               "price": 450000,
               "currency": "NGN",
-              "image": "https://example.com/images/iphone-13.jpg",
+              "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/Iphone_13_sgxs2a.jpg",
               category: 'gadget'
             },
             {
@@ -66,7 +66,7 @@ export class UserService {
               "name": "Samsung 55\" 4K TV",
               "price": 230000,
               "currency": "NGN",
-              "image": "https://example.com/images/samsung-4k-tv.jpg",
+              "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/Samsung_55_TV_e9yflu.jpg",
               category: 'gadget'
             },
             {
@@ -74,7 +74,7 @@ export class UserService {
               "name": "PlayStation 5",
               "price": 300000,
               "currency": "NGN",
-              "image": "https://example.com/images/ps5.jpg",
+              "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/ps_5_b6zjr9.webp",
               category: 'gadget'
             },
             {
@@ -82,7 +82,7 @@ export class UserService {
               "name": "LG Washing Machine",
               "price": 150000,
               "currency": "NGN",
-              "image": "https://example.com/images/lg-washing-machine.jpg",
+              "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/LG_washing_machine_d43gnq.jpg",
               category: 'gadget'
             },
             {
@@ -90,39 +90,15 @@ export class UserService {
               "name": "Adidas Ultraboost",
               "price": 38000,
               "currency": "NGN",
-              "image": "https://example.com/images/adidas-ultraboost.jpg",
+              "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/addiddas_o6ogwr.jpg",
               category: 'fashion'
-            },
-            {
-               user_id: newUser._id,
-              "name": "Sony WH-1000XM4 Headphones",
-              "price": 120000,
-              "currency": "NGN",
-              "image": "https://example.com/images/sony-headphones.jpg",
-              category: 'gadget'
-            },
-            {
-               user_id: newUser._id,
-              "name": "Dell XPS 13 Laptop",
-              "price": 550000,
-              "currency": "NGN",
-              "image": "https://example.com/images/dell-xps-13.jpg",
-              category: 'gadget'
-            },
-            {
-               user_id: newUser._id,
-              "name": "Beats Studio Buds",
-              "price": 75000,
-              "currency": "NGN",
-              "image": "https://example.com/images/beats-studio-buds.jpg",
-              category: 'gadget'
             },
             {
                user_id: newUser._id,
               "name": "HP LaserJet Printer",
               "price": 85000,
               "currency": "NGN",
-              "image": "https://example.com/images/hp-laserjet.jpg",
+              "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/hp_printer_egwjbf.jpg",
               category: 'gadget'
             }
         ])

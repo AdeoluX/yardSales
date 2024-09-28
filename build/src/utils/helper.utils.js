@@ -34,5 +34,11 @@ Utils.generateString = ({ alpha = false, number = false }) => {
     }
     return result;
 };
+Utils.paginateOptions = (query) => {
+    const page = Number(query.page) || 1;
+    const perPage = Number(query.perPage) || 10;
+    const skip = (page - 1) * perPage;
+    return { page, perPage, skip };
+};
 exports.default = Utils;
 //# sourceMappingURL=helper.utils.js.map

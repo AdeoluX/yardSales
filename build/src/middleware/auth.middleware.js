@@ -27,7 +27,7 @@ class AuthMiddleware {
                 if (!payload) {
                     throw new error_handler_1.NotAuthorizedError("You do not have permission to perform this action.");
                 }
-                console.log(this === null || this === void 0 ? void 0 : this.allowedRoles);
+                // console.log(this?.allowedRoles)
                 if (((_d = this === null || this === void 0 ? void 0 : this.allowedRoles) === null || _d === void 0 ? void 0 : _d.length) > 0 && !((_e = this === null || this === void 0 ? void 0 : this.allowedRoles) === null || _e === void 0 ? void 0 : _e.includes(payload === null || payload === void 0 ? void 0 : payload.role))) {
                     throw new error_handler_1.NotAuthorizedError("You do not have permission to perform this action.");
                 }

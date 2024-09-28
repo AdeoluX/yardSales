@@ -12,7 +12,15 @@ class UserRoutes {
         this.router = express_1.default.Router();
     }
     routes() {
-        this.router.post("/user", auth_middleware_1.authMiddleware.verifyUser, controller_1.UserController.prototype.checkIn);
+        this.router.post("/user", auth_middleware_1.authMiddleware.verifyUser, controller_1.UserController.prototype.getUser);
+        this.router.put("/location", auth_middleware_1.authMiddleware.verifyUser, controller_1.UserController.prototype.updateUserLocation);
+        this.router.post("/seedProducts", controller_1.UserController.prototype.seedUserAndProducts);
+        this.router.get('/products/:category?', auth_middleware_1.authMiddleware.verifyUser, controller_1.UserController.prototype.viewProducts);
+        this.router.get('/nearby-products/:category?', auth_middleware_1.authMiddleware.verifyUser, controller_1.UserController.prototype.productsNearby);
+        this.router.get('/product/:id', auth_middleware_1.authMiddleware.verifyUser, controller_1.UserController.prototype.viewProduct);
+        this.router.post('/product/:id', auth_middleware_1.authMiddleware.verifyUser, controller_1.UserController.prototype.reviewProduct);
+        this.router.post('/product', auth_middleware_1.authMiddleware.verifyUser, controller_1.UserController.prototype.uploadProduct);
+        this.router.post('/bulk-product', auth_middleware_1.authMiddleware.verifyUser, controller_1.UserController.prototype.reviewProduct);
         return this.router;
     }
 }

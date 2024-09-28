@@ -27,6 +27,17 @@ const UserSchema = new mongoose_1.Schema({
         type: String,
         // select: false,
     },
+    location: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            default: 'Point'
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }
+    },
     phoneNumber: {
         type: String,
     },
@@ -49,6 +60,7 @@ UserSchema.method("isValidPassword", function (password) {
         return isValid;
     });
 });
+UserSchema.index({ location: '2dsphere' });
 // Pre-save hook to hash password before saving
 UserSchema.pre("save", function (next) {
     return __awaiter(this, void 0, void 0, function* () {
