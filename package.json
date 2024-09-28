@@ -33,6 +33,7 @@
     "@types/nodemailer": "^6.4.15",
     "bcrypt": "^5.1.1",
     "bunyan": "^1.8.15",
+    "cloudinary": "^2.5.0",
     "compression": "^1.7.4",
     "copyfiles": "^2.4.1",
     "cors": "^2.8.5",

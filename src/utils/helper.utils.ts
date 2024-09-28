@@ -44,5 +44,6 @@ export default class Utils {
     const skip = (page - 1) * perPage;
     
     return { page, perPage, skip };
-}
+  }
+  
 }

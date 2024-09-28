@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import ApiResponse from "../utils/api-response";
 import { UserService } from "../services/user.service";
-import { Icheckin, Ipagination, IReviewProducts } from "../services/types/auth.types";
+import { Icheckin, Ipagination, IReviewProducts, IUploadProduct, IUserLocation } from "../services/types/auth.types";
 import { NotAuthorizedError } from "../utils/error-handler";
 import Utils from "../utils/helper.utils";
 const { created, customError, ok, response } = ApiResponse;
@@ -21,7 +21,40 @@ export class UserController {
         next(error);
       }
     }
-    public async uploadProduct(req: Request, res: Response, next: NextFunction){}
+    public async updateUserLocation(req: Request, res: Response, next: NextFunction){
+      try{
+        const payload: IUserLocation = req.body;
+        const { success, message, token, data } = await UserService.prototype.updateUserLocation(payload);
+        if (!success) return customError(res, 400, message)
+        return ok(
+          res,
+          data,
+          message
+        );
+      }catch(error){
+        next(error)
+      }
+    }
+    public async uploadProduct(req: Request, res: Response, next: NextFunction){
+      try{
+        let payload: IUploadProduct  = req.body;
+        let image: any;
+        if(Array.isArray(req?.files?.image)){
+          image = req.files.image.map(item => item.tempFilePath)
+        }else{
+          image = req?.files?.image
+        }
+        const { success, message, token, data } = await UserService.prototype.uploadProduct({...payload, image});
+        if (!success) return customError(res, 400, message)
+          return ok(
+            res,
+            {data},
+            message
+          );
+      }catch(error){
+        next(error)
+      }
+    }
     public async reviewProduct(req: Request, res: Response, next: NextFunction){
       try{
         const { id } = req.params;
@@ -31,7 +64,7 @@ export class UserController {
         if (!success) return customError(res, 400, message)
         return ok(
           res,
-          data,
+          {data},
           message
         );
 
@@ -59,7 +92,7 @@ export class UserController {
         const { category } = req.params
         const paginate: Ipagination = Utils.paginateOptions(query)
         const { success, message, token, data, options } = await UserService.prototype.viewProducts({query: { ...query, ...paginate }, params: category});
-        if (!success) throw new NotAuthorizedError(message ?? 'Unauthorized user')
+        if (!success) return customError(res, 400, message)
         return ok(
           res,
           {data, ...options},
@@ -82,4 +115,23 @@ export class UserController {
         next(error)
       }
     }
+
+    public async productsNearby(req: Request, res: Response, next: NextFunction){
+      try{
+        const query: any = req.query
+        const { category } = req.params
+        const { authorizer } = req.body
+        const paginate: Ipagination = Utils.paginateOptions(query)
+        const { success, message, token, data } = await UserService.prototype.productsNearby({query: { ...query, ...paginate }, params: category, authorizer});
+        if (!success) return customError(res, 400, message)
+        return ok(
+          res,
+          {data},
+          message
+        );
+      }catch(error){
+        next(error)
+      }
+    }
+
   }

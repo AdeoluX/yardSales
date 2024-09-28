@@ -11,6 +11,10 @@ export interface IUser extends Document {
   phoneNumber: string;
   password: string;
   token: string;
+  location: {
+    type: string;
+    coordinates: [number, number]; // [longitude, latitude]
+  };
   isComplete: boolean; // Add virtual field type
 }
 
@@ -29,6 +33,17 @@ const UserSchema = new Schema<IUser>(
     password: {
       type: String,
       // select: false,
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point'
+      },
+      coordinates: {
+        type: [Number],
+        required: true
+      }
     },
     phoneNumber: {
       type: String,
@@ -57,6 +72,8 @@ UserSchema.method(
     return isValid;
   }
 );
+
+UserSchema.index({ location: '2dsphere' });
 
 // Pre-save hook to hash password before saving
 UserSchema.pre("save", async function (next) {

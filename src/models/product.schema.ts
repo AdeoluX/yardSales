@@ -7,7 +7,7 @@ export interface IProduct extends Document {
   name: string;
   price: number;
   currency: string;
-  image: string;
+  image: string | string[];
   category: string;
 }
 
@@ -25,7 +25,13 @@ const ProductSchema = new Schema<IProduct>(
       type: String,
     },
     image: {
-      type: String,
+      type: Schema.Types.Mixed, // Allow image to be a string or an array of strings
+      validate: {
+        validator: function (value: any) {
+          return typeof value === "string" || (Array.isArray(value) && value.every(item => typeof item === "string"));
+        },
+        message: "Image must be a string or an array of strings",
+      },
     },
     price: {
       type: Number,

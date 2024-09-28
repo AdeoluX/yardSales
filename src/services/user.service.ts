@@ -1,8 +1,9 @@
-import { UserModel } from "../models/user.schema";
-import {Icheckin, IQuery, IReviewProducts, ServiceRes} from"./types/auth.types";
+import { IUser, UserModel } from "../models/user.schema";
+import {Icheckin, IQuery, IReviewProducts, IUploadProduct, IUserLocation, ServiceRes} from"./types/auth.types";
 import moment from 'moment';
-import { ProductModel } from "../models/product.schema";
+import { IProduct, ProductModel } from "../models/product.schema";
 import { ReviewModel } from "../models/review.schema";
+import { uploadImage } from "../utils/cloudinary";
 export class UserService {
     public async getUser(authorizer: any): Promise<ServiceRes> {
         const {id} = authorizer;
@@ -20,12 +21,7 @@ export class UserService {
 
     public async seedUserAndProducts(): Promise<ServiceRes>{
         let newUser = await UserModel.findOne({
-            firstName: "Test",
-            lastName: "Tester",
-            middleName: "Testerer",
             email: "d1headphones@gmail.com",
-            phoneNumber: "23408089344676",
-            isComplete: true
         })
 
         if(!newUser){
@@ -35,7 +31,12 @@ export class UserService {
                 middleName: "Testerer",
                 email: "d1headphones@gmail.com",
                 phoneNumber: "23408089344676",
-                isComplete: true
+                isComplete: true,
+                location: {
+                    "type": "Point",
+                    "coordinates": [3.3792, 6.5244]
+                }
+
             })
         }
 
@@ -157,6 +158,42 @@ export class UserService {
         }
     }
 
+    public async productsNearby({authorizer, query, params = null}: {authorizer: any; query: IQuery; params: string | null;}) : Promise<ServiceRes>{
+        const { id } = authorizer;
+        const user = await UserModel.findById(id)
+        let selectQuery = {
+            location: {
+              $near: {
+                $geometry: {
+                  type: 'Point',
+                  coordinates: [user?.location?.coordinates?.[0], user?.location?.coordinates?.[1]]  // Coordinates as [longitude, latitude]
+                },
+                $maxDistance: 3000  // Search within this distance in meters
+              }
+            }
+        }
+        const nearbyUsers: IUser[] = await UserModel.find(selectQuery).select('_id');
+
+        const userIds: string[] = nearbyUsers.map(user => user._id.toString());
+        const products: IProduct[] = await ProductModel.find({
+            user_id: { $in: userIds },
+            ...((query?.startDate && query?.endDate) && { createdAt : {
+                $gte: new Date(query.startDate),
+                $lte: new Date(query.endDate)
+            }}),
+            ...(params && {category: params}),
+            ...(query?.search && {name: { $regex: query.search, $options: 'i' }}),
+        }).skip(query?.skip)  // Skip the number of documents
+          .limit(query.perPage) // Limit the number of documents returned
+          .exec();  // Optionally populate user details
+        console.log(products)
+        return {
+            success: true,
+            message: "Products gotten successfully.",
+            data: products
+        };
+    }
+
     public async viewProduct(id: string) : Promise<ServiceRes>{
         const product = await ProductModel.findById(id)
         if(!product) return {
@@ -204,6 +241,49 @@ export class UserService {
         return {
             success: true,
             data: { review: review.toJSON() }
+        }
+    }
+
+    public async uploadProduct(payload: IUploadProduct) : Promise<ServiceRes>{
+        const { authorizer, ...rest } = payload;
+        const { id } = authorizer;
+        const user = await UserModel.findById(id);
+        if(!user) return {
+            success: false,
+            message: "User not found."
+        }
+        const folder = 'products'
+        let image: string | string[]
+        if (Array.isArray(rest?.image)) {
+            image = []
+            for(let item of rest.image){
+                const secureUrl = await uploadImage(item, folder)
+                image.push(secureUrl)
+            }
+        } else {
+            image = await uploadImage(rest.image, folder)
+        }
+        const product = await ProductModel.create({...rest, image, user_id: id})
+        return {
+            success: true,
+            message: "Product created successfully",
+            data: product.toJSON()
+        }
+    }
+
+    public async updateUserLocation(payload: IUserLocation)  : Promise<ServiceRes> {
+        const { id } = payload.authorizer;
+        const { authorizer, ...rest } = payload;
+        const user = await UserModel.findById(id)
+        if(!user) return {
+            success: false,
+            message: "User does not exist."
+        }
+        const newUser = await UserModel.findOneAndUpdate({_id: id}, {location: rest}, { new: true })
+        return {
+            success: true,
+            message: "Location added successfully",
+            data: { data : newUser?.toJSON()}
         }
     }
 

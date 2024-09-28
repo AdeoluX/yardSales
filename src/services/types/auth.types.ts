@@ -134,3 +134,18 @@ export interface IReviewProducts {
   authorizer?: any;
   product?: string;
 }
+
+export interface IUserLocation {
+    type: string;
+    coordinates: [number, number];
+    authorizer?: any;
+}
+
+export interface IUploadProduct {
+  image: string | string[];
+  currency: string;
+  price: number;
+  category: string;
+  name: string;
+  authorizer?: any;
+}
