@@ -1,9 +1,14 @@
+import { startSession } from 'mongoose'; // Import to use transactions
 import { IUser, UserModel } from "../models/user.schema";
-import {Icheckin, IQuery, IReviewProducts, IUploadProduct, IUserLocation, ServiceRes} from"./types/auth.types";
+import {Icheckin, IpurchaseItem, IQuery, IReviewProducts, IUploadProduct, IUserLocation, ServiceRes} from"./types/auth.types";
 import moment from 'moment';
 import { IProduct, ProductModel } from "../models/product.schema";
 import { ReviewModel } from "../models/review.schema";
 import { uploadImage } from "../utils/cloudinary";
+import { OrderModel } from "../models/order.schema";
+import { TransactionModel } from "../models/transaction.schema";
+import Utils from "../utils/helper.utils";
+import { initiateCharge } from "../utils/payment.utility";
 export class UserService {
     public async getUser(authorizer: any): Promise<ServiceRes> {
         const {id} = authorizer;
@@ -50,6 +55,7 @@ export class UserService {
               name: "Nike Air Max 270",
               price: 45000,
               currency: "NGN",
+              quantity: 10,
               image: "https://res.cloudinary.com/jakin/image/upload/v1727556056/products/NIKE_rmprlu.jpg",
               category: 'fashion'
             },
@@ -58,6 +64,7 @@ export class UserService {
               "name": "Apple iPhone 13",
               "price": 450000,
               "currency": "NGN",
+              quantity: 20,
               "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/Iphone_13_sgxs2a.jpg",
               category: 'gadget'
             },
@@ -66,6 +73,7 @@ export class UserService {
               "name": "Samsung 55\" 4K TV",
               "price": 230000,
               "currency": "NGN",
+              quantity: 5,
               "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/Samsung_55_TV_e9yflu.jpg",
               category: 'gadget'
             },
@@ -74,6 +82,7 @@ export class UserService {
               "name": "PlayStation 5",
               "price": 300000,
               "currency": "NGN",
+              quantity: 10,
               "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/ps_5_b6zjr9.webp",
               category: 'gadget'
             },
@@ -82,6 +91,7 @@ export class UserService {
               "name": "LG Washing Machine",
               "price": 150000,
               "currency": "NGN",
+              quantity: 15,
               "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/LG_washing_machine_d43gnq.jpg",
               category: 'gadget'
             },
@@ -90,6 +100,7 @@ export class UserService {
               "name": "Adidas Ultraboost",
               "price": 38000,
               "currency": "NGN",
+              quantity: 25,
               "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/addiddas_o6ogwr.jpg",
               category: 'fashion'
             },
@@ -98,6 +109,7 @@ export class UserService {
               "name": "HP LaserJet Printer",
               "price": 85000,
               "currency": "NGN",
+              quantity: 25,
               "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/hp_printer_egwjbf.jpg",
               category: 'gadget'
             }
@@ -262,5 +274,97 @@ export class UserService {
             data: { data : newUser?.toJSON()}
         }
     }
+    
+    public async purchaseProduct(payload: IpurchaseItem): Promise<ServiceRes> {
+        const { product_id, quantity, user_id } = payload;
+        const session = await startSession(); // Start a session for the transaction
+        session.startTransaction(); // Begin the transaction
+
+        try {
+            // Fetch Product
+            const product = await ProductModel.findById(product_id).session(session);
+            if (!product) {
+                await session.abortTransaction(); // Abort the transaction
+                session.endSession();
+                return {
+                    success: false,
+                    message: "Invalid product."
+                };
+            }
+
+            // Check product stock
+            if (product.quantity < quantity) {
+                await session.abortTransaction(); // Abort the transaction
+                session.endSession();
+                return {
+                    success: false,
+                    message: `Insufficient number of ${product.name}(s) to execute order.`
+                };
+            }
+
+            // Fetch User
+            const user = await UserModel.findById(user_id).session(session);
+            if (!user) {
+                await session.abortTransaction(); // Abort the transaction
+                session.endSession();
+                return {
+                    success: false,
+                    message: "Invalid user."
+                };
+            }
+
+            const email: any = user.email;
+            const amount = product.price * quantity;
+            const reference = `yord-${Utils.generateString({ alpha: true, number: true })}`;
+
+            // Create Order
+            const order = await OrderModel.create([{
+                user: user_id,
+                product: product_id,
+                quantity
+            }], { session });
+
+            // Update product quantity
+            product.quantity -= quantity;
+            await product.save({ session });
+
+            // Create Transaction
+            await TransactionModel.create([{
+                order: order[0]._id,
+                amount,
+                user: user_id,
+                reference
+            }], { session });
+
+            // Commit the transaction before the external API call
+            await session.commitTransaction();
+            session.endSession();
+
+            // Initiate charge (outside transaction as this is an external API call)
+            const charge = await initiateCharge({
+                email,
+                amount,
+                reference
+            });
+
+            return {
+                success: true,
+                message: "Charge initiated.",
+                data: { paymentLink: charge.data.authorization_url }
+            };
+            
+        } catch (error) {
+            // Rollback the transaction in case of any failure
+            await session.abortTransaction();
+            session.endSession();
+
+            console.error("Error during purchase: ", error);
+            return {
+                success: false,
+                message: "Purchase failed. Please try again."
+            };
+        }
+    }
+
 
 }

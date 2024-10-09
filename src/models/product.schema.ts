@@ -9,6 +9,7 @@ export interface IProduct extends Document {
   currency: string;
   image: string | string[];
   category: string;
+  quantity: number;
 }
 
 // User schema
@@ -33,6 +34,7 @@ const ProductSchema = new Schema<IProduct>(
         message: "Image must be a string or an array of strings",
       },
     },
+    quantity: Number,
     price: {
       type: Number,
     },

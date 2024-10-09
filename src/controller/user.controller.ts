@@ -134,4 +134,21 @@ export class UserController {
       }
     }
 
+    public async purchaseProduct(req: Request, res: Response, next: NextFunction){
+      try{
+        const { product_id, quantity, authorizer } = req.body
+        const { success, message, data } = await UserService.prototype.purchaseProduct({
+          quantity, product_id, user_id: authorizer.id
+        })
+        if (!success) return customError(res, 400, message)
+        return ok(
+          res,
+          {data},
+          message
+        );
+      }catch(error){
+        next(error)
+      }
+    }
+
   }
