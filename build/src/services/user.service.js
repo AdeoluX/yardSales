@@ -19,12 +19,20 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
+const mongoose_1 = require("mongoose"); // Import to use transactions
 const user_schema_1 = require("../models/user.schema");
 const product_schema_1 = require("../models/product.schema");
 const review_schema_1 = require("../models/review.schema");
 const cloudinary_1 = require("../utils/cloudinary");
+const order_schema_1 = require("../models/order.schema");
+const transaction_schema_1 = require("../models/transaction.schema");
+const helper_utils_1 = __importDefault(require("../utils/helper.utils"));
+const payment_utility_1 = require("../utils/payment.utility");
 class UserService {
     getUser(authorizer) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -70,6 +78,7 @@ class UserService {
                     name: "Nike Air Max 270",
                     price: 45000,
                     currency: "NGN",
+                    quantity: 10,
                     image: "https://res.cloudinary.com/jakin/image/upload/v1727556056/products/NIKE_rmprlu.jpg",
                     category: 'fashion'
                 },
@@ -78,6 +87,7 @@ class UserService {
                     "name": "Apple iPhone 13",
                     "price": 450000,
                     "currency": "NGN",
+                    quantity: 20,
                     "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/Iphone_13_sgxs2a.jpg",
                     category: 'gadget'
                 },
@@ -86,6 +96,7 @@ class UserService {
                     "name": "Samsung 55\" 4K TV",
                     "price": 230000,
                     "currency": "NGN",
+                    quantity: 5,
                     "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/Samsung_55_TV_e9yflu.jpg",
                     category: 'gadget'
                 },
@@ -94,6 +105,7 @@ class UserService {
                     "name": "PlayStation 5",
                     "price": 300000,
                     "currency": "NGN",
+                    quantity: 10,
                     "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/ps_5_b6zjr9.webp",
                     category: 'gadget'
                 },
@@ -102,6 +114,7 @@ class UserService {
                     "name": "LG Washing Machine",
                     "price": 150000,
                     "currency": "NGN",
+                    quantity: 15,
                     "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/LG_washing_machine_d43gnq.jpg",
                     category: 'gadget'
                 },
@@ -110,6 +123,7 @@ class UserService {
                     "name": "Adidas Ultraboost",
                     "price": 38000,
                     "currency": "NGN",
+                    quantity: 25,
                     "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/addiddas_o6ogwr.jpg",
                     category: 'fashion'
                 },
@@ -118,6 +132,7 @@ class UserService {
                     "name": "HP LaserJet Printer",
                     "price": 85000,
                     "currency": "NGN",
+                    quantity: 25,
                     "image": "https://res.cloudinary.com/jakin/image/upload/v1727556512/hp_printer_egwjbf.jpg",
                     category: 'gadget'
                 }
@@ -283,6 +298,87 @@ class UserService {
                 message: "Location added successfully",
                 data: { data: newUser === null || newUser === void 0 ? void 0 : newUser.toJSON() }
             };
+        });
+    }
+    purchaseProduct(payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { product_id, quantity, user_id } = payload;
+            const session = yield (0, mongoose_1.startSession)(); // Start a session for the transaction
+            session.startTransaction(); // Begin the transaction
+            try {
+                // Fetch Product
+                const product = yield product_schema_1.ProductModel.findById(product_id).session(session);
+                if (!product) {
+                    yield session.abortTransaction(); // Abort the transaction
+                    session.endSession();
+                    return {
+                        success: false,
+                        message: "Invalid product."
+                    };
+                }
+                // Check product stock
+                if (product.quantity < quantity) {
+                    yield session.abortTransaction(); // Abort the transaction
+                    session.endSession();
+                    return {
+                        success: false,
+                        message: `Insufficient number of ${product.name}(s) to execute order.`
+                    };
+                }
+                // Fetch User
+                const user = yield user_schema_1.UserModel.findById(user_id).session(session);
+                if (!user) {
+                    yield session.abortTransaction(); // Abort the transaction
+                    session.endSession();
+                    return {
+                        success: false,
+                        message: "Invalid user."
+                    };
+                }
+                const email = user.email;
+                const amount = product.price * quantity;
+                const reference = `yord-${helper_utils_1.default.generateString({ alpha: true, number: true })}`;
+                // Create Order
+                const order = yield order_schema_1.OrderModel.create([{
+                        user: user_id,
+                        product: product_id,
+                        quantity
+                    }], { session });
+                // Update product quantity
+                product.quantity -= quantity;
+                yield product.save({ session });
+                // Create Transaction
+                yield transaction_schema_1.TransactionModel.create([{
+                        order: order[0]._id,
+                        amount,
+                        user: user_id,
+                        reference
+                    }], { session });
+                // Commit the transaction before the external API call
+                yield session.commitTransaction();
+                session.endSession();
+                // Initiate charge (outside transaction as this is an external API call)
+                const charge = yield (0, payment_utility_1.initiateCharge)({
+                    email,
+                    amount,
+                    reference
+                });
+                return {
+                    success: true,
+                    message: "Charge initiated.",
+                    data: { paymentLink: charge.data.authorization_url }
+                };
+            }
+            catch (error) {
+                // Rollback the transaction in case of any failure
+                yield session.abortTransaction();
+                session.endSession();
+                console.error("Error during purchase: ", error);
+                return {
+                    success: false,
+                    message: "Purchase failed. Please try again."
+                };
+            }
         });
     }
 }

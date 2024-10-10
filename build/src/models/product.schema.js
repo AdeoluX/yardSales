@@ -23,6 +23,7 @@ const ProductSchema = new mongoose_1.Schema({
             message: "Image must be a string or an array of strings",
         },
     },
+    quantity: Number,
     price: {
         type: Number,
     },

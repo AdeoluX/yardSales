@@ -144,6 +144,22 @@ class UserController {
             }
         });
     }
+    purchaseProduct(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { product_id, quantity, authorizer } = req.body;
+                const { success, message, data } = yield user_service_1.UserService.prototype.purchaseProduct({
+                    quantity, product_id, user_id: authorizer.id
+                });
+                if (!success)
+                    return customError(res, 400, message);
+                return ok(res, { data }, message);
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+    }
 }
 exports.UserController = UserController;
 //# sourceMappingURL=user.controller.js.map
