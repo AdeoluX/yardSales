@@ -17,7 +17,7 @@ const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 export const initiateCharge = async ({
   email = "",
   amount,
-  callbackUrl,
+  callbackUrl = 'https://www.google.com',
   reference,
 }: InitiateChargeParams): Promise<InitiateChargeResponse> => {
   try {

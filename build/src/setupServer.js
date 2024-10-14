@@ -79,6 +79,7 @@ class Server {
                 statusCode: http_status_codes_1.default.BAD_REQUEST,
             });
         });
+        process.on('', () => { });
     }
     startServer(app) {
         app.listen(process.env.PORT, () => __awaiter(this, void 0, void 0, function* () { return console.log(`Listening on port ${process.env.PORT}`); }));

@@ -94,6 +94,8 @@ export class Server {
         });
       }
     );
+
+    process.on('', () => {})
   }
 
   private startServer(app: Application): void {

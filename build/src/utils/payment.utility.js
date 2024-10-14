@@ -21,7 +21,7 @@ const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 // Interface for the initiation of a transaction
 // Interface for the response from Paystack after initializing a transaction
 // Function to initialize a Paystack transaction
-const initiateCharge = (_a) => __awaiter(void 0, [_a], void 0, function* ({ email = "", amount, callbackUrl, reference, }) {
+const initiateCharge = (_a) => __awaiter(void 0, [_a], void 0, function* ({ email = "", amount, callbackUrl = 'https://www.google.com', reference, }) {
     var _b, _c;
     try {
         const response = yield axios_1.default.post(`${PAYSTACK_BASE_URL}/transaction/initialize`, {

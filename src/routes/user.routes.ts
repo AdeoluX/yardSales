@@ -20,6 +20,12 @@ class UserRoutes {
     this.router.post('/product', authMiddleware.verifyUser, UserController.prototype.uploadProduct);
     this.router.post('/bulk-product', authMiddleware.verifyUser, UserController.prototype.reviewProduct);
     this.router.post('/purchase', authMiddleware.verifyUser, UserController.prototype.purchaseProduct);
+    /**
+     * add Item to cart
+     * remove Item from cart
+     * 
+     */
+
 
     return this.router;
   }

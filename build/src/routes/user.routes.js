@@ -22,6 +22,11 @@ class UserRoutes {
         this.router.post('/product', auth_middleware_1.authMiddleware.verifyUser, controller_1.UserController.prototype.uploadProduct);
         this.router.post('/bulk-product', auth_middleware_1.authMiddleware.verifyUser, controller_1.UserController.prototype.reviewProduct);
         this.router.post('/purchase', auth_middleware_1.authMiddleware.verifyUser, controller_1.UserController.prototype.purchaseProduct);
+        /**
+         * add Item to cart
+         * remove Item from cart
+         *
+         */
         return this.router;
     }
 }
