@@ -325,7 +325,6 @@ export class UserService {
             }], { session });
 
             // Update product quantity
-            product.quantity -= quantity;
             await product.save({ session });
 
             // Create Transaction

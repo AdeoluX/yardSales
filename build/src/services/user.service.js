@@ -345,7 +345,6 @@ class UserService {
                         quantity
                     }], { session });
                 // Update product quantity
-                product.quantity -= quantity;
                 yield product.save({ session });
                 // Create Transaction
                 yield transaction_schema_1.TransactionModel.create([{
